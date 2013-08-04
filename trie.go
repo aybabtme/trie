@@ -4,9 +4,40 @@ import (
 	"unicode/utf8"
 )
 
+type node struct {
+	Value    interface{}
+	Children []*node
+}
+
+func newNode(n int, val interface{}) *node {
+	return &node{val, make([]*node, n)}
+}
+
+func (n *node) noChild() bool {
+	for _, n := range n.Children {
+		if n != nil {
+			return false
+		}
+	}
+	return true
+}
+
 // Trie is a symbol table specifically for string indexed keys.
 type Trie struct {
-	root *node
+	root      *node
+	alphaSize int
+}
+
+// NewTrie creates a trie supporting alphabets of size `alphaSize`.
+func NewTrie(alphaSize int) *Trie {
+	return &Trie{
+		alphaSize: alphaSize,
+	}
+}
+
+// NewUTF8 creates a trie supporting a UTF8 alphabet.
+func NewUTF8() *Trie {
+	return NewTrie(utf8.MaxRune)
 }
 
 // Put puts the value `val` into the trie at key `key`.
@@ -16,7 +47,7 @@ func (t *Trie) Put(key string, val interface{}) {
 
 	recurPut = func(x *node, key string, val interface{}, d int) *node {
 		if x == nil {
-			x = &node{}
+			x = newNode(t.alphaSize, val)
 		}
 		if d == len(key) {
 			x.Value = val
@@ -81,18 +112,4 @@ func (t *Trie) Delete(key string) {
 	}
 
 	recurDel(t.root, key, 0)
-}
-
-type node struct {
-	Value    interface{}
-	Children [utf8.MaxRune]*node
-}
-
-func (n *node) noChild() bool {
-	for _, n := range n.Children {
-		if n != nil {
-			return false
-		}
-	}
-	return true
 }
