@@ -67,7 +67,7 @@ func (t *TernaryST) get(x *ternNode, key []rune, d int) *ternNode {
 		return nil
 	}
 
-	c := (key)[d]
+	c := key[d]
 
 	if c < x.Code {
 		return t.get(x.left, key, d)
