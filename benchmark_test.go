@@ -9,16 +9,16 @@ import (
 	"testing"
 )
 
-func Benchmark_map_SmallStr_4(b *testing.B)    { benchmark_map_SmallStr(b, 4, 128) }
-func Benchmark_map_SmallStr_8(b *testing.B)    { benchmark_map_SmallStr(b, 8, 128) }
-func Benchmark_map_SmallStr_16(b *testing.B)   { benchmark_map_SmallStr(b, 16, 128) }
-func Benchmark_map_SmallStr_32(b *testing.B)   { benchmark_map_SmallStr(b, 32, 128) }
-func Benchmark_map_SmallStr_64(b *testing.B)   { benchmark_map_SmallStr(b, 64, 128) }
-func Benchmark_map_SmallStr_512(b *testing.B)  { benchmark_map_SmallStr(b, 512, 128) }
-func Benchmark_map_SmallStr_1024(b *testing.B) { benchmark_map_SmallStr(b, 1024, 128) }
-func Benchmark_map_SmallStr_1M(b *testing.B)   { benchmark_map_SmallStr(b, 1<<20, 128) }
+func Benchmark_map_Lookup_4(b *testing.B)    { benchmark_map_Lookup(b, 4, 64) }
+func Benchmark_map_Lookup_8(b *testing.B)    { benchmark_map_Lookup(b, 8, 64) }
+func Benchmark_map_Lookup_16(b *testing.B)   { benchmark_map_Lookup(b, 16, 64) }
+func Benchmark_map_Lookup_32(b *testing.B)   { benchmark_map_Lookup(b, 32, 64) }
+func Benchmark_map_Lookup_64(b *testing.B)   { benchmark_map_Lookup(b, 64, 64) }
+func Benchmark_map_Lookup_512(b *testing.B)  { benchmark_map_Lookup(b, 512, 64) }
+func Benchmark_map_Lookup_1024(b *testing.B) { benchmark_map_Lookup(b, 1024, 64) }
+func Benchmark_map_Lookup_1M(b *testing.B)   { benchmark_map_Lookup(b, 1<<20, 64) }
 
-func benchmark_map_SmallStr(b *testing.B, keys int, alphaSize uint8) {
+func benchmark_map_Lookup(b *testing.B, keys int, alphaSize uint8) {
 	runtime.GC()
 	b.ReportAllocs()
 	m := make(map[string]bool)
@@ -44,16 +44,16 @@ func benchmark_map_SmallStr(b *testing.B, keys int, alphaSize uint8) {
 	}
 }
 
-func Benchmark_ternaryST_SmallStr_4(b *testing.B)    { benchmark_ternaryST_SmallStr(b, 4, 128) }
-func Benchmark_ternaryST_SmallStr_8(b *testing.B)    { benchmark_ternaryST_SmallStr(b, 8, 128) }
-func Benchmark_ternaryST_SmallStr_16(b *testing.B)   { benchmark_ternaryST_SmallStr(b, 16, 128) }
-func Benchmark_ternaryST_SmallStr_32(b *testing.B)   { benchmark_ternaryST_SmallStr(b, 32, 128) }
-func Benchmark_ternaryST_SmallStr_64(b *testing.B)   { benchmark_ternaryST_SmallStr(b, 64, 128) }
-func Benchmark_ternaryST_SmallStr_512(b *testing.B)  { benchmark_ternaryST_SmallStr(b, 512, 128) }
-func Benchmark_ternaryST_SmallStr_1024(b *testing.B) { benchmark_ternaryST_SmallStr(b, 1024, 128) }
-func Benchmark_ternaryST_SmallStr_1M(b *testing.B)   { benchmark_ternaryST_SmallStr(b, 1<<20, 128) }
+func Benchmark_ternaryST_Lookup_4(b *testing.B)    { benchmark_ternaryST_Lookup(b, 4, 64) }
+func Benchmark_ternaryST_Lookup_8(b *testing.B)    { benchmark_ternaryST_Lookup(b, 8, 64) }
+func Benchmark_ternaryST_Lookup_16(b *testing.B)   { benchmark_ternaryST_Lookup(b, 16, 64) }
+func Benchmark_ternaryST_Lookup_32(b *testing.B)   { benchmark_ternaryST_Lookup(b, 32, 64) }
+func Benchmark_ternaryST_Lookup_64(b *testing.B)   { benchmark_ternaryST_Lookup(b, 64, 64) }
+func Benchmark_ternaryST_Lookup_512(b *testing.B)  { benchmark_ternaryST_Lookup(b, 512, 64) }
+func Benchmark_ternaryST_Lookup_1024(b *testing.B) { benchmark_ternaryST_Lookup(b, 1024, 64) }
+func Benchmark_ternaryST_Lookup_1M(b *testing.B)   { benchmark_ternaryST_Lookup(b, 1<<20, 64) }
 
-func benchmark_ternaryST_SmallStr(b *testing.B, keys int, alphaSize uint8) {
+func benchmark_ternaryST_Lookup(b *testing.B, keys int, alphaSize uint8) {
 	runtime.GC()
 	b.ReportAllocs()
 	trie := NewTernaryST()
@@ -79,16 +79,16 @@ func benchmark_ternaryST_SmallStr(b *testing.B, keys int, alphaSize uint8) {
 	}
 }
 
-func Benchmark_trie128_SmallStr_4(b *testing.B)    { benchmark_trie_SmallStr(b, 4, 128) }
-func Benchmark_trie128_SmallStr_8(b *testing.B)    { benchmark_trie_SmallStr(b, 8, 128) }
-func Benchmark_trie128_SmallStr_16(b *testing.B)   { benchmark_trie_SmallStr(b, 16, 128) }
-func Benchmark_trie128_SmallStr_32(b *testing.B)   { benchmark_trie_SmallStr(b, 32, 128) }
-func Benchmark_trie128_SmallStr_64(b *testing.B)   { benchmark_trie_SmallStr(b, 64, 128) }
-func Benchmark_trie128_SmallStr_512(b *testing.B)  { benchmark_trie_SmallStr(b, 512, 128) }
-func Benchmark_trie128_SmallStr_1024(b *testing.B) { benchmark_trie_SmallStr(b, 1024, 128) }
-func Benchmark_trie128_SmallStr_1M(b *testing.B)   { benchmark_trie_SmallStr(b, 1<<20, 128) }
+func Benchmark_trie64_Lookup_4(b *testing.B)    { benchmark_trie_Lookup(b, 4, 64) }
+func Benchmark_trie64_Lookup_8(b *testing.B)    { benchmark_trie_Lookup(b, 8, 64) }
+func Benchmark_trie64_Lookup_16(b *testing.B)   { benchmark_trie_Lookup(b, 16, 64) }
+func Benchmark_trie64_Lookup_32(b *testing.B)   { benchmark_trie_Lookup(b, 32, 64) }
+func Benchmark_trie64_Lookup_64(b *testing.B)   { benchmark_trie_Lookup(b, 64, 64) }
+func Benchmark_trie64_Lookup_512(b *testing.B)  { benchmark_trie_Lookup(b, 512, 64) }
+func Benchmark_trie64_Lookup_1024(b *testing.B) { benchmark_trie_Lookup(b, 1024, 64) }
+func Benchmark_trie64_Lookup_1M(b *testing.B)   { benchmark_trie_Lookup(b, 1<<20, 64) }
 
-func benchmark_trie_SmallStr(b *testing.B, keys int, alphaSize uint8) {
+func benchmark_trie_Lookup(b *testing.B, keys int, alphaSize uint8) {
 	runtime.GC()
 	b.ReportAllocs()
 	trie := NewTrie('0', alphaSize)

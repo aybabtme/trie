@@ -1,13 +1,36 @@
 Trie
 ====
 
-Simple, unoptimized trie implementation for UTF 8 strings or any subset alphabet of UTF 8.
+Implements:
 
-A valid alphabet with size `n` is a subset of UTF 8 with `[0, n)` characters in it.  That means an alphabet of size 128 will effectively be the first 128 characters of UTF8 - from `0x00` to `0x7F`.
+* A trie, use it like a `map[string]interface{}`.
+* A ternary search tree, like a `map[string]interface{}` from which you cannot delete.
+* A trieset, use it like a `map[string]struct{}`.
 
-You are responsible for ensuring the strings you pass respect the range permissible by the alphabet size you provided. Failing to do so will be rewarded with a runtime panic.
+Uses package `unsafe` to avoid allocating memory.
 
-Live long and prosper.
+Performance
+===========
+
+This benchmarks shows lookups only (`Get`):
+
+| keys | `map[string]bool` | `trie.TernaryST` | `trie.Trie` |
+|:----:|:-----------------:|:----------------:|:-----------:|
+| 4    |        7.36 ns/op |       24.1 ns/op | 28.4 ns/op  |
+| 8    |        7.37 ns/op |       24.3 ns/op | 28.3 ns/op  |
+| 16   |        28.6 ns/op |       33.4 ns/op | 35.0 ns/op  |
+| 32   |        24.6 ns/op |       33.7 ns/op | 35.3 ns/op  |
+| 64   |        25.1 ns/op |       33.2 ns/op | 35.2 ns/op  |
+| 512  |        24.4 ns/op |       38.5 ns/op | 42.0 ns/op  |
+| 1024 |        33.9 ns/op |       43.5 ns/op | 49.5 ns/op  |
+| 1M   |        32.1 ns/op |       58.5 ns/op | 72.2 ns/op  |
+
+
+Known bugs
+==========
+
+* Panics on rune that have a value greater than 126.
+
 
 License
 =======

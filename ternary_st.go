@@ -91,19 +91,6 @@ func (t *TernaryST) get(x *ternNode, key []uint8, d int) *ternNode {
 	return x
 }
 
-// Delete removes the value found at this location, if it exists
-func (t *TernaryST) Delete(key string) {
-	if key == "" {
-		return
-	}
-	t.delete(t.root, []rune(key), 0)
-}
-
-func (t *TernaryST) delete(*ternNode, []rune, int) *ternNode {
-	panic("Not implemented yet!")
-	return nil
-}
-
 // Len returns the count of elements in this trie
 func (t *TernaryST) Len() int {
 	return t.count
