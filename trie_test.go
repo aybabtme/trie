@@ -14,7 +14,7 @@ func TestPutGetWith128CharAlphabet(t *testing.T) {
 
 	want := simpleType{2, "hahaha value of 2"}
 
-	trie := NewTrie(128)
+	trie := NewTrie('A', 128)
 
 	trie.Put(key, want)
 
@@ -35,7 +35,7 @@ func TestDeletesWith128CharAlphabet(t *testing.T) {
 
 	want := simpleType{2, "jdhbvjhj"}
 
-	trie := NewTrie(128)
+	trie := NewTrie('A', 128)
 
 	trie.Put(key, want)
 	got, _ := trie.Get(key)

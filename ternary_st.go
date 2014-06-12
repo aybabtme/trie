@@ -1,5 +1,10 @@
 package trie
 
+import (
+	"reflect"
+	"unsafe"
+)
+
 type ternNode struct {
 	Value *interface{}
 	Code  rune
@@ -22,18 +27,21 @@ func NewTernaryST() *TernaryST {
 
 // Put puts the value `val` into the trie at key `key`.
 func (t *TernaryST) Put(key string, val interface{}) {
-	t.root = t.put(t.root, []rune(key), val, 0)
+	header := *(*reflect.StringHeader)(unsafe.Pointer(&key))
+	data := *(*[]uint8)(unsafe.Pointer(&header))
+
+	t.root = t.put(t.root, data, val, 0)
 }
 
-func (t *TernaryST) put(x *ternNode, key []rune, val interface{}, d int) *ternNode {
+func (t *TernaryST) put(x *ternNode, key []uint8, val interface{}, d int) *ternNode {
 	c := key[d]
 	if x == nil {
-		x = &ternNode{Code: c, Value: &val}
+		x = &ternNode{Code: rune(c), Value: &val}
 	}
 
-	if c < x.Code {
+	if c < uint8(x.Code) {
 		x.left = t.put(x.left, key, val, d)
-	} else if c > x.Code {
+	} else if c > uint8(x.Code) {
 		x.right = t.put(x.right, key, val, d)
 	} else if d < len(key)-1 {
 		x.child = t.put(x.child, key, val, d+1)
@@ -53,7 +61,10 @@ func (t *TernaryST) Get(key string) (interface{}, bool) {
 		return nil, false
 	}
 
-	ternNode := t.get(t.root, []rune(key), 0)
+	header := *(*reflect.StringHeader)(unsafe.Pointer(&key))
+	data := *(*[]uint8)(unsafe.Pointer(&header))
+
+	ternNode := t.get(t.root, data, 0)
 
 	if ternNode == nil {
 		return nil, false
@@ -62,16 +73,16 @@ func (t *TernaryST) Get(key string) (interface{}, bool) {
 	return *ternNode.Value, true
 }
 
-func (t *TernaryST) get(x *ternNode, key []rune, d int) *ternNode {
+func (t *TernaryST) get(x *ternNode, key []uint8, d int) *ternNode {
 	if x == nil {
 		return nil
 	}
 
 	c := key[d]
 
-	if c < x.Code {
+	if c < uint8(x.Code) {
 		return t.get(x.left, key, d)
-	} else if c > x.Code {
+	} else if c > uint8(x.Code) {
 		return t.get(x.right, key, d)
 	} else if d < len(key)-1 {
 		return t.get(x.child, key, d+1)
@@ -101,21 +112,24 @@ func (t *TernaryST) Len() int {
 // Keys returns all the keys known to this trie
 func (t *TernaryST) Keys() []string {
 	var outCollection []string
-	collect(t.root, []rune(""), outCollection)
+	collect(t.root, []uint8{}, outCollection)
 	return outCollection
 }
 
 // KeysWithPrefix returns all the keys starting with prefix `key`
 func (t *TernaryST) KeysWithPrefix(key string) []string {
+	header := *(*reflect.StringHeader)(unsafe.Pointer(&key))
+	data := *(*[]uint8)(unsafe.Pointer(&header))
+
 	var outCollection []string
-	x := t.get(t.root, []rune(key), 0)
+	x := t.get(t.root, data, 0)
 	if x == nil {
 		return outCollection
 	}
 	if x.Value != nil {
 		outCollection = append(outCollection, key)
 	}
-	collect(x.child, []rune(key), outCollection)
+	collect(x.child, data, outCollection)
 	return outCollection
 }
 
@@ -125,18 +139,19 @@ func (t *TernaryST) LongestPrefix(key string) string {
 		return ""
 	}
 
-	keyRune := []rune(key)
+	header := *(*reflect.StringHeader)(unsafe.Pointer(&key))
+	data := *(*[]uint8)(unsafe.Pointer(&header))
 
 	lenght := 0
 
 	x := t.root
 	i := 0
-	var c rune
-	for x != nil && i < len(keyRune) {
-		c = keyRune[i]
-		if c < x.Code {
+	var c uint8
+	for x != nil && i < len(data) {
+		c = data[i]
+		if c < uint8(x.Code) {
 			x = x.left
-		} else if c > x.Code {
+		} else if c > uint8(x.Code) {
 			x = x.right
 		} else {
 			i++
@@ -146,26 +161,28 @@ func (t *TernaryST) LongestPrefix(key string) string {
 			x = x.child
 		}
 	}
-	return string(keyRune[0:lenght])
+	return string(data[0:lenght])
 }
 
 // KeysMatching returns all the keys that share prefix `key`, where `key` can
 // contain a wildcard character `.`.
 func (t *TernaryST) KeysMatching(key string) []string {
+	header := *(*reflect.StringHeader)(unsafe.Pointer(&key))
+	data := *(*[]uint8)(unsafe.Pointer(&header))
 	var outCollection []string
-	patternCollect(t.root, []rune(""), 0, []rune(key), outCollection)
+	patternCollect(t.root, []uint8{}, 0, data, outCollection)
 	return outCollection
 }
 
 // Helpers
 
 // `collect` collects a set of string that share a prefix
-func collect(x *ternNode, key []rune, outCollection []string) {
+func collect(x *ternNode, key []uint8, outCollection []string) {
 	if x == nil {
 		return
 	}
 	collect(x.left, key, outCollection)
-	newKey := append(key, x.Code)
+	newKey := append(key, uint8(x.Code))
 	if x.Value != nil {
 		outCollection = append(outCollection, string(newKey))
 	}
@@ -176,9 +193,9 @@ func collect(x *ternNode, key []rune, outCollection []string) {
 // 'patternCollect' collects a set of string that matches the pattern
 func patternCollect(
 	x *ternNode,
-	prefix []rune,
+	prefix []uint8,
 	i int,
-	pat []rune,
+	pat []uint8,
 	outCollection []string,
 ) {
 	if x == nil {
@@ -187,11 +204,11 @@ func patternCollect(
 
 	c := pat[i]
 
-	if c == '.' || c < x.Code {
+	if c == uint8('.') || c < uint8(x.Code) {
 		patternCollect(x.left, prefix, i, pat, outCollection)
 	}
 
-	if c == '.' || c == x.Code {
+	if c == uint8('.') || c == uint8(x.Code) {
 		newKey := append(prefix, c)
 		if i == len(pat)-1 && x.Value != nil {
 			outCollection = append(outCollection, string(newKey))
@@ -201,7 +218,7 @@ func patternCollect(
 		}
 	}
 
-	if c == '.' || c > x.Code {
+	if c == uint8('.') || c > uint8(x.Code) {
 		patternCollect(x.right, prefix, i, pat, outCollection)
 	}
 }
