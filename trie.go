@@ -4,6 +4,7 @@ package trie
 import (
 	"log"
 	"reflect"
+	"unicode/utf8"
 	"unsafe"
 )
 
@@ -33,7 +34,7 @@ type Trie struct {
 }
 
 // NewTrie creates a trie supporting alphabets of size `alphaSize`.
-func NewTrie(offset rune, alphaSize uint8) *Trie {
+func NewTrie(offset byte, alphaSize uint8) *Trie {
 	return &Trie{
 		offset:    uint8(offset),
 		alphaSize: alphaSize,
@@ -44,11 +45,11 @@ func NewTrie(offset rune, alphaSize uint8) *Trie {
 func (t *Trie) Put(key string, val interface{}) {
 
 	header := *(*reflect.StringHeader)(unsafe.Pointer(&key))
-	data := *(*[]uint8)(unsafe.Pointer(&header))
+	data := *(*[]byte)(unsafe.Pointer(&header))
 
-	var recurPut func(*node, []uint8, interface{}, int) *node
+	var recurPut func(*node, []byte, interface{}, int) *node
 
-	recurPut = func(x *node, key []uint8, val interface{}, d int) *node {
+	recurPut = func(x *node, key []byte, val interface{}, d int) *node {
 		if x == nil {
 			x = newNode(t.alphaSize, val)
 		}
@@ -56,11 +57,12 @@ func (t *Trie) Put(key string, val interface{}) {
 			x.Value = val
 			return x
 		}
-		c := rune(key[d]) - rune(t.offset)
+		r, sz := utf8.DecodeRune(key[d:])
+		c := r - rune(t.offset)
 		if len(x.Children) < int(c) {
-			log.Panicf("key=%v\tkey[d]=%v\td=%d\tc=%d\tt.offset=%d", key, key[d], d, c, t.offset)
+			log.Panicf("key=%q\tkey[d]=%v\td=%d\tc=%d\tt.offset=%d\tlen(x.Children)=%d", key, key[d], d, c, t.offset, len(x.Children))
 		}
-		x.Children[c] = recurPut(x.Children[c], key, val, d+1)
+		x.Children[c] = recurPut(x.Children[c], key, val, d+sz)
 		return x
 	}
 
@@ -70,19 +72,20 @@ func (t *Trie) Put(key string, val interface{}) {
 // Get returns the value found at this location, if it exists
 func (t *Trie) Get(key string) (interface{}, bool) {
 	header := *(*reflect.StringHeader)(unsafe.Pointer(&key))
-	data := *(*[]uint8)(unsafe.Pointer(&header))
+	data := *(*[]byte)(unsafe.Pointer(&header))
 
-	var recurGet func(*node, []uint8, int) *node
+	var recurGet func(*node, []byte, int) *node
 
-	recurGet = func(x *node, key []uint8, d int) *node {
+	recurGet = func(x *node, key []byte, d int) *node {
 		if x == nil {
 			return nil
 		}
 		if d == len(key) {
 			return x
 		}
-		c := key[d] - t.offset
-		return recurGet(x.Children[c], key, d+1)
+		r, sz := utf8.DecodeRune(key[d:])
+		c := r - rune(t.offset)
+		return recurGet(x.Children[c], key, d+sz)
 	}
 
 	node := recurGet(t.root, data, 0)
@@ -97,10 +100,10 @@ func (t *Trie) Get(key string) (interface{}, bool) {
 // Delete removes the value found at this location, if it exists
 func (t *Trie) Delete(key string) {
 	header := *(*reflect.StringHeader)(unsafe.Pointer(&key))
-	data := *(*[]uint8)(unsafe.Pointer(&header))
-	var recurDel func(*node, []uint8, int) *node
+	data := *(*[]byte)(unsafe.Pointer(&header))
+	var recurDel func(*node, []byte, int) *node
 
-	recurDel = func(x *node, key []uint8, d int) *node {
+	recurDel = func(x *node, key []byte, d int) *node {
 		if x == nil {
 			// was not a key in this Trie
 			return nil
@@ -108,8 +111,9 @@ func (t *Trie) Delete(key string) {
 		if d == len(key) {
 			x.Value = nil
 		} else {
-			c := key[d] - t.offset
-			x.Children[c] = recurDel(x.Children[c], key, d+1)
+			r, sz := utf8.DecodeRune(key[d:])
+			c := r - rune(t.offset)
+			x.Children[c] = recurDel(x.Children[c], key, d+sz)
 		}
 
 		if x.Value != nil {
