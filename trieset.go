@@ -2,8 +2,7 @@
 package trie
 
 import (
-	"reflect"
-	"unsafe"
+	"unicode/utf8"
 )
 
 type setnode struct {
@@ -41,46 +40,42 @@ func NewTrieSet(offset rune, alphaSize uint8) *TrieSet {
 // Add puts the key into the set.
 func (t *TrieSet) Add(key string) {
 
-	header := *(*reflect.StringHeader)(unsafe.Pointer(&key))
-	data := *(*[]uint8)(unsafe.Pointer(&header))
+	var recurAdd func(*setnode, string, int) *setnode
 
-	var recurAdd func(*setnode, []uint8, int) *setnode
-
-	recurAdd = func(x *setnode, key []uint8, d int) *setnode {
+	recurAdd = func(x *setnode, key string, d int) *setnode {
 		if x == nil {
 			x = newSetNode(t.alphaSize)
 		}
 		if d == len(key) {
 			return x
 		}
-		c := key[d] - t.offset
-		x.Children[c] = recurAdd(x.Children[c], key, d+1)
+		r, sz := utf8.DecodeRuneInString(key[d:])
+		c := r - rune(t.offset)
+		x.Children[c] = recurAdd(x.Children[c], key, d+sz)
 		return x
 	}
 
-	t.root = recurAdd(t.root, data, 0)
+	t.root = recurAdd(t.root, key, 0)
 }
 
 // Contains tells if this key is in the set.
 func (t *TrieSet) Contains(key string) bool {
 
-	header := *(*reflect.StringHeader)(unsafe.Pointer(&key))
-	data := *(*[]uint8)(unsafe.Pointer(&header))
+	var recurGet func(*setnode, string, int) *setnode
 
-	var recurGet func(*setnode, []uint8, int) *setnode
-
-	recurGet = func(x *setnode, key []uint8, d int) *setnode {
+	recurGet = func(x *setnode, key string, d int) *setnode {
 		if x == nil {
 			return nil
 		}
 		if d == len(key) {
 			return x
 		}
-		c := key[d] - t.offset
-		return recurGet(x.Children[c], key, d+1)
+		r, sz := utf8.DecodeRuneInString(key[d:])
+		c := r - rune(t.offset)
+		return recurGet(x.Children[c], key, d+sz)
 	}
 
-	setnode := recurGet(t.root, data, 0)
+	setnode := recurGet(t.root, key, 0)
 
 	if setnode == nil {
 		return false
@@ -92,19 +87,17 @@ func (t *TrieSet) Contains(key string) bool {
 // Delete removes the key from the set.
 func (t *TrieSet) Delete(key string) {
 
-	header := *(*reflect.StringHeader)(unsafe.Pointer(&key))
-	data := *(*[]uint8)(unsafe.Pointer(&header))
+	var recurDel func(*setnode, string, int) *setnode
 
-	var recurDel func(*setnode, []uint8, int) *setnode
-
-	recurDel = func(x *setnode, key []uint8, d int) *setnode {
+	recurDel = func(x *setnode, key string, d int) *setnode {
 		if x == nil {
 			// was not a key in this TrieSet
 			return nil
 		}
 		if d != len(key) {
-			c := key[d] - t.offset
-			x.Children[c] = recurDel(x.Children[c], key, d+1)
+			r, sz := utf8.DecodeRuneInString(key[d:])
+			c := r - rune(t.offset)
+			x.Children[c] = recurDel(x.Children[c], key, d+sz)
 		}
 
 		if x.noChild() {
@@ -113,5 +106,5 @@ func (t *TrieSet) Delete(key string) {
 		return x
 	}
 
-	recurDel(t.root, data, 0)
+	recurDel(t.root, key, 0)
 }
