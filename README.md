@@ -7,8 +7,6 @@ Implements:
 * A ternary search tree, like a `map[string]interface{}` from which you cannot delete.
 * A trieset, use it like a `map[string]struct{}`.
 
-Uses package `unsafe` to avoid allocating memory.
-
 Performance
 ===========
 
@@ -25,11 +23,6 @@ This benchmarks shows lookups only (`Get`):
 | 1024 |        33.9 ns/op |       43.5 ns/op | 49.5 ns/op  |
 | 1M   |        32.1 ns/op |       58.5 ns/op | 72.2 ns/op  |
 
-
-Known bugs
-==========
-
-* Panics on rune that have a value greater than 126.
 
 
 License
