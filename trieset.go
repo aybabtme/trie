@@ -27,7 +27,13 @@ type TrieSet struct {
 	offset    uint8
 	root      *setnode
 	alphaSize uint8
+	elems     int
 }
+
+var (
+	// TrieSetIsMutable asserts that a TrieSet can be mutated.
+	TrieSetIsMutable MutableSet = new(TrieSet)
+)
 
 // NewTrieSet creates a set supporting alphabets of size `alphaSize`.
 func NewTrieSet(offset rune, alphaSize uint8) *TrieSet {
@@ -37,6 +43,12 @@ func NewTrieSet(offset rune, alphaSize uint8) *TrieSet {
 	}
 }
 
+// IsEmpty tells whether this TrieSet contains any elements.
+func (t *TrieSet) IsEmpty() bool { return t.elems == 0 }
+
+// Len tells how many elements are in this TrieSet.
+func (t *TrieSet) Len() int { return t.elems }
+
 // Add puts the key into the set.
 func (t *TrieSet) Add(key string) {
 
@@ -44,6 +56,9 @@ func (t *TrieSet) Add(key string) {
 
 	recurAdd = func(x *setnode, key string, d int) *setnode {
 		if x == nil {
+			if d == len(key) {
+				t.elems++
+			}
 			x = newSetNode(t.alphaSize)
 		}
 		if d == len(key) {
@@ -98,6 +113,7 @@ func (t *TrieSet) Delete(key string) {
 			r, sz := utf8.DecodeRuneInString(key[d:])
 			c := r - rune(t.offset)
 			x.Children[c] = recurDel(x.Children[c], key, d+sz)
+			t.elems--
 		}
 
 		if x.noChild() {
